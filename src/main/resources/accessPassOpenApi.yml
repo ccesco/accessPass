@@ -63,3 +63,5 @@ components:
           type: string
           example:
             21-02-2022_21-42
+        codeValue:
+          type: string
