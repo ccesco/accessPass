@@ -2,18 +2,22 @@ package fr.cyrilcesco.accesspass.domain.model;
 
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 
 @Getter
 public class AccessCodeGeneratedList {
-    private List<AccessCodeGenerated> accessCodeGenerateds;
+    private BlockingQueue<AccessCodeGenerated> accessCodeGenerateds;
 
     public AccessCodeGeneratedList() {
-        this.accessCodeGenerateds = new ArrayList<>();
+        this.accessCodeGenerateds = new LinkedBlockingDeque<>();
     }
 
-    public boolean addElementToBuffer(AccessCodeGenerated qrCodeInformation) {
-        return accessCodeGenerateds.add(qrCodeInformation);
+    public boolean addElementsToBuffer(BlockingQueue<AccessCodeGenerated> partialAccessCodeGenerateds) {
+        return accessCodeGenerateds.addAll(partialAccessCodeGenerateds);
+    }
+
+    public boolean addElementToBuffer(AccessCodeGenerated partialAccessCodeGenerateds) {
+        return accessCodeGenerateds.add(partialAccessCodeGenerateds);
     }
 }

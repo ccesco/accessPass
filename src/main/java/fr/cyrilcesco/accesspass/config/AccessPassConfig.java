@@ -1,7 +1,7 @@
 package fr.cyrilcesco.accesspass.config;
 
 import fr.cyrilcesco.accesspass.domain.model.AccessCodeGeneratedList;
-import fr.cyrilcesco.accesspass.domain.model.QrGeneratorQueue;
+import fr.cyrilcesco.accesspass.domain.model.QrGeneratorBlockingQueue;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Configuration;
 public class AccessPassConfig {
 
     @Bean
-    public QrGeneratorQueue qrCodeGenertorQueue() {
-        return new QrGeneratorQueue();
+    public QrGeneratorBlockingQueue qrCodeGenertorQueue() {
+        return new QrGeneratorBlockingQueue(10);
     }
 
     @Bean

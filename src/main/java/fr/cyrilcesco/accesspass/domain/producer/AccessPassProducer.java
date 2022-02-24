@@ -1,27 +1,33 @@
 package fr.cyrilcesco.accesspass.domain.producer;
 
 import fr.cyrilcesco.accesspass.domain.model.QrCodeInformation;
-import fr.cyrilcesco.accesspass.domain.model.QrGeneratorQueue;
+import fr.cyrilcesco.accesspass.domain.model.QrGeneratorBlockingQueue;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AccessPassProducer implements Runnable {
 
-    private QrGeneratorQueue buffer;
-    private QrCodeInformation valueToAddToBuffer = null;
+    private QrGeneratorBlockingQueue buffer;
 
-    public AccessPassProducer(QrGeneratorQueue buffer) {
+    public AccessPassProducer(QrGeneratorBlockingQueue buffer) {
         this.buffer = buffer;
-    }
-
-    public boolean addValueToBuffer(QrCodeInformation valueToAddToBuffer) {
-        return this.buffer.getBuffer().add(valueToAddToBuffer);
     }
 
     @Override
     public void run() {
-        if (valueToAddToBuffer != null) {
-            buffer.addElementToBuffer(valueToAddToBuffer);
+        produce();
+    }
+
+    private void produce() {
+        while (true) {
+            QrCodeInformation value = QrCodeInformation.generate();
+            try {
+                buffer.getBuffer().put(value);
+            } catch (InterruptedException e) {
+                break;
+            }
+            System.out.println(Thread.currentThread().getName() + " taille buffer " + buffer.getBuffer().size());
+            System.out.println(Thread.currentThread().getName() + " produce " + value.getUsername() + " " + value.getFirstName());
         }
     }
 }

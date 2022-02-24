@@ -3,43 +3,41 @@ package fr.cyrilcesco.accesspass.domain;
 import fr.cyrilcesco.accesspass.domain.consumer.QrCodeGeneratorConsumer;
 import fr.cyrilcesco.accesspass.domain.model.AccessCodeGeneratedList;
 import fr.cyrilcesco.accesspass.domain.model.QrCodeInformation;
-import fr.cyrilcesco.accesspass.domain.model.QrGeneratorQueue;
+import fr.cyrilcesco.accesspass.domain.model.QrGeneratorBlockingQueue;
 import fr.cyrilcesco.accesspass.domain.producer.AccessPassProducer;
 import fr.cyrilcesco.accesspass.model.RequestDto;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AccessCodeManager {
 
-    private QrGeneratorQueue buffer;
+    private QrGeneratorBlockingQueue buffer;
     private AccessCodeGeneratedList result;
 
-    public AccessCodeManager(QrGeneratorQueue buffer, AccessCodeGeneratedList result) {
+    public AccessCodeManager(QrGeneratorBlockingQueue buffer, AccessCodeGeneratedList result) {
         this.buffer = buffer;
         this.result = result;
     }
 
+    @SneakyThrows
     public AccessCodeGeneratedList run(RequestDto requestDto) {
 
-        Thread producerThread = new Thread(new AccessPassProducer(buffer));
-        producerThread.setName("producerThread");
+        for (int i = 0; i < 10; i++) {
+            Thread producerThread = new Thread(new AccessPassProducer(buffer));
+            producerThread.setName("producerThread" + i);
+            producerThread.start();
+        }
 
-        buffer.addElementToBuffer(getQrCodeInformation(requestDto));
-
-        Thread consumerThread1 = new Thread(new QrCodeGeneratorConsumer(buffer, result));
-        consumerThread1.setName("consumerThread1");
-
-        Thread consumerThread2 = new Thread(new QrCodeGeneratorConsumer(buffer, result));
-        consumerThread2.setName("consumerThread2");
-
-        producerThread.start();
-        consumerThread1.start();
-        consumerThread2.start();
+        for (int i = 0; i < 3; i++) {
+            AccessCodeGeneratedList partialResult = new AccessCodeGeneratedList();
+            Thread consumerThread = new Thread(new QrCodeGeneratorConsumer(buffer, partialResult));
+            consumerThread.setName("consumerThread" + i);
+            consumerThread.start();
+            consumerThread.join();
+            result.addElementsToBuffer(partialResult.getAccessCodeGenerateds());
+        }
 
         return result;
-    }
-
-    private QrCodeInformation getQrCodeInformation(RequestDto requestDto) {
-        return QrCodeInformation.builder().birthDate(requestDto.getBasicInfo().getBirthDate()).firstName(requestDto.getBasicInfo().getFirstName()).username(requestDto.getBasicInfo().getUsername()).build();
     }
 }

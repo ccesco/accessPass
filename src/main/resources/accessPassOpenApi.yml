@@ -22,7 +22,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccessPass'
+                $ref: '#/components/schemas/AccessPassList'
         404:
           description: Not Found
           content: {}
@@ -49,6 +49,10 @@ components:
         basicInfo:
           type: object
           $ref: '#/components/schemas/AccessPassBasicInfo'
+    AccessPassList:
+      type: array
+      items:
+        $ref: '#/components/schemas/AccessPass'
     AccessPass:
       type: object
       properties:
